@@ -825,39 +825,6 @@ export default function BasicSetting() {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        width: "100%",
-        paddingBottom: rpx(24),
-        flex: 1,
-    },
-    centerText: {
-        textAlignVertical: "center",
-        maxWidth: rpx(400),
-    },
-    sectionHeader: {
-        paddingHorizontal: rpx(24),
-        height: rpx(72),
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: rpx(20),
-    },
-    headerContainer: {
-        height: rpx(80),
-    },
-    headerContentContainer: {
-        height: rpx(80),
-        alignItems: "center",
-        paddingHorizontal: rpx(24),
-    },
-    headerItemStyle: {
-        paddingHorizontal: rpx(36),
-        height: rpx(80),
-        justifyContent: "center",
-        alignItems: "center",
-    },
-});
-
 function LyricSetting() {
     /**
      * // Lyric
@@ -887,6 +854,12 @@ function LyricSetting() {
     const enableBreathingDots = useAppConfig("lyric.enableBreathingDots");
     const desktopShowTranslation = useAppConfig("lyric.desktopShowTranslation");
     const desktopShowRomanization = useAppConfig("lyric.desktopShowRomanization");
+    
+    // 新增蓝牙歌词配置
+    const enableBluetoothLyric = useAppConfig("lyric.enableBluetoothLyric");
+    const bluetoothLyricShowTranslation = useAppConfig("lyric.bluetoothLyricShowTranslation");
+    const bluetoothLyricShowRomanization = useAppConfig("lyric.bluetoothLyricShowRomanization");
+    const bluetoothLyricMaxLength = useAppConfig("lyric.bluetoothLyricMaxLength");
 
     const colors = useColors();
 
@@ -933,6 +906,73 @@ function LyricSetting() {
         "lyric.desktopShowRomanization",
         desktopShowRomanization ?? false,
     );
+
+    // 新增蓝牙歌词设置项
+    const bluetoothLyricSwitch = createSwitch(
+        "蓝牙歌词显示",
+        "lyric.enableBluetoothLyric",
+        enableBluetoothLyric ?? false,
+        async (newValue) => {
+            try {
+                if (newValue) {
+                    // 检查设备是否支持蓝牙歌词
+                    const supported = await LyricUtil.isBluetoothLyricSupported();
+                    if (supported) {
+                        Config.setConfig("lyric.enableBluetoothLyric", true);
+                        Toast.success("蓝牙歌词已启用");
+                    } else {
+                        Toast.warn("当前设备不支持蓝牙歌词");
+                        return false;
+                    }
+                } else {
+                    Config.setConfig("lyric.enableBluetoothLyric", false);
+                    Toast.success("蓝牙歌词已禁用");
+                }
+                return true;
+            } catch (e) {
+                Toast.warn("蓝牙歌词设置失败");
+                return false;
+            }
+        }
+    );
+
+    const bluetoothTranslationSwitch = createSwitch(
+        "蓝牙歌词显示翻译",
+        "lyric.bluetoothLyricShowTranslation",
+        bluetoothLyricShowTranslation ?? false,
+    );
+
+    const bluetoothRomanizationSwitch = createSwitch(
+        "蓝牙歌词显示罗马音",
+        "lyric.bluetoothLyricShowRomanization",
+        bluetoothLyricShowRomanization ?? false,
+    );
+
+    const bluetoothMaxLengthSetting = {
+        title: "蓝牙歌词最大长度",
+        right: (
+            <ThemeText style={styles.centerText}>
+                {bluetoothLyricMaxLength ?? 120} 字符
+            </ThemeText>
+        ),
+        onPress() {
+            showPanel("SimpleInput", {
+                title: "设置蓝牙歌词最大长度",
+                placeholder: "请输入最大字符数 (50-200)",
+                defaultValue: (bluetoothLyricMaxLength ?? 120).toString(),
+                onOk(text, closePanel) {
+                    const val = parseInt(text, 10);
+                    if (val >= 50 && val <= 200) {
+                        Config.setConfig("lyric.bluetoothLyricMaxLength", val);
+                        closePanel();
+                        Toast.success("设置成功");
+                    } else {
+                        Toast.warn("请输入50-200之间的数字");
+                    }
+                },
+            });
+        },
+    };
 
     const openStatusBarLyric = createSwitch(
         t("basicSettings.lyric.showStatusBarLyric"),
@@ -1023,6 +1063,45 @@ function LyricSetting() {
                 <ListItem.Content title={breathingDots.title} />
                 {breathingDots.right}
             </ListItem>
+            
+            {/* 新增蓝牙歌词设置项 */}
+            <ListItem
+                withHorizontalPadding
+                heightType="small"
+                onPress={bluetoothLyricSwitch.onPress}>
+                <ListItem.Content 
+                    title={bluetoothLyricSwitch.title} 
+                    description="在连接的蓝牙设备上显示歌词" 
+                />
+                {bluetoothLyricSwitch.right}
+            </ListItem>
+            
+            {enableBluetoothLyric && (
+                <>
+                    <ListItem
+                        withHorizontalPadding
+                        heightType="small"
+                        onPress={bluetoothTranslationSwitch.onPress}>
+                        <ListItem.Content title={bluetoothTranslationSwitch.title} />
+                        {bluetoothTranslationSwitch.right}
+                    </ListItem>
+                    <ListItem
+                        withHorizontalPadding
+                        heightType="small"
+                        onPress={bluetoothRomanizationSwitch.onPress}>
+                        <ListItem.Content title={bluetoothRomanizationSwitch.title} />
+                        {bluetoothRomanizationSwitch.right}
+                    </ListItem>
+                    <ListItem
+                        withHorizontalPadding
+                        heightType="small"
+                        onPress={bluetoothMaxLengthSetting.onPress}>
+                        <ListItem.Content title={bluetoothMaxLengthSetting.title} />
+                        {bluetoothMaxLengthSetting.right}
+                    </ListItem>
+                </>
+            )}
+            
             <ListItem
                 withHorizontalPadding
                 heightType="small"
@@ -1189,6 +1268,39 @@ function LyricSetting() {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    wrapper: {
+        width: "100%",
+        paddingBottom: rpx(24),
+        flex: 1,
+    },
+    centerText: {
+        textAlignVertical: "center",
+        maxWidth: rpx(400),
+    },
+    sectionHeader: {
+        paddingHorizontal: rpx(24),
+        height: rpx(72),
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: rpx(20),
+    },
+    headerContainer: {
+        height: rpx(80),
+    },
+    headerContentContainer: {
+        height: rpx(80),
+        alignItems: "center",
+        paddingHorizontal: rpx(24),
+    },
+    headerItemStyle: {
+        paddingHorizontal: rpx(36),
+        height: rpx(80),
+        justifyContent: "center",
+        alignItems: "center",
+    },
+});
 
 const lyricStyles = StyleSheet.create({
     slider: {
