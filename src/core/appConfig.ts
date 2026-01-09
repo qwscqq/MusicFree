@@ -202,6 +202,37 @@ class AppConfig implements IAppConfig {
             configStore.set("$schema", "3");
         }
 
+        // 新增：蓝牙歌词配置迁移（schemaVersion 4）
+        if (schemaVersion < 4) {
+            // 设置蓝牙歌词的默认配置
+            if (this.getConfig("lyric.enableBluetoothLyric") === undefined) {
+                this.setConfig("lyric.enableBluetoothLyric", false);
+            }
+            if (this.getConfig("lyric.bluetoothLyricShowTranslation") === undefined) {
+                this.setConfig("lyric.bluetoothLyricShowTranslation", false);
+            }
+            if (this.getConfig("lyric.bluetoothLyricShowRomanization") === undefined) {
+                this.setConfig("lyric.bluetoothLyricShowRomanization", false);
+            }
+            if (this.getConfig("lyric.bluetoothLyricMaxLength") === undefined) {
+                this.setConfig("lyric.bluetoothLyricMaxLength", 120);
+            }
+            if (this.getConfig("lyric.hideDesktopLyricWhenPaused") === undefined) {
+                this.setConfig("lyric.hideDesktopLyricWhenPaused", true);
+            }
+            if (this.getConfig("lyric.desktopShowTranslation") === undefined) {
+                this.setConfig("lyric.desktopShowTranslation", false);
+            }
+            if (this.getConfig("lyric.desktopShowRomanization") === undefined) {
+                this.setConfig("lyric.desktopShowRomanization", false);
+            }
+            if (this.getConfig("lyric.enableWordByWord") === undefined) {
+                this.setConfig("lyric.enableWordByWord", true);
+            }
+
+            configStore.set("$schema", "4");
+        }
+
     }
 
     async setup(): Promise<void> {
@@ -227,6 +258,29 @@ class AppConfig implements IAppConfig {
             return undefined;
         }
         return JSON.parse(value);
+    }
+
+    /**
+     * 获取蓝牙歌词相关配置
+     */
+    getBluetoothLyricConfig() {
+        return {
+            enabled: this.getConfig("lyric.enableBluetoothLyric") ?? false,
+            showTranslation: this.getConfig("lyric.bluetoothLyricShowTranslation") ?? false,
+            showRomanization: this.getConfig("lyric.bluetoothLyricShowRomanization") ?? false,
+            maxLength: this.getConfig("lyric.bluetoothLyricMaxLength") ?? 120,
+        };
+    }
+
+    /**
+     * 获取桌面歌词相关配置
+     */
+    getDesktopLyricConfig() {
+        return {
+            hideWhenPaused: this.getConfig("lyric.hideDesktopLyricWhenPaused") ?? true,
+            showTranslation: this.getConfig("lyric.desktopShowTranslation") ?? false,
+            showRomanization: this.getConfig("lyric.desktopShowRomanization") ?? false,
+        };
     }
 }
 
