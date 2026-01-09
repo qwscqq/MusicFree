@@ -2,6 +2,8 @@ package `fun`.upup.musicfree.lyricUtil
 
 import android.app.Activity
 import android.content.Intent
+import android.media.MediaMetadata
+import android.media.session.MediaSession
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -16,6 +18,76 @@ import java.nio.charset.StandardCharsets
 class LyricUtilModule(private val reactContext: ReactApplicationContext): ReactContextBaseJavaModule(reactContext) {
     override fun getName() = "LyricUtil"
     private var lyricView: LyricView? = null
+    private var mediaSession: MediaSession? = null
+    private var isBluetoothLyricEnabled = false
+    
+        /** ========== 蓝牙歌词新增方法 ========== */
+    private fun initMediaSession() {
+        if (mediaSession == null) {
+            mediaSession = MediaSession(reactContext, "MusicFree").apply {
+                setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or 
+                        MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS)
+                isActive = true
+                
+                // 设置空的初始状态
+                setMetadata(MediaMetadata.Builder().build())
+            }
+            Log.d("LyricUtil", "MediaSession 初始化完成")
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun updateMediaSessionMetadata(
+        title: String,
+        artist: String,
+        lyric: String,
+        translation: String,
+        romanization: String
+    ) {
+        mediaSession?.let { session ->
+            val metadataBuilder = MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadata.METADATA_KEY_ALBUM, "MusicFree")
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, 0)
+            
+            // 构建显示文本：优先显示当前歌词行
+            val displayText = buildDisplayText(lyric, translation, romanization, title, artist)
+            metadataBuilder.putString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, displayText)
+            
+            // 设置歌词到歌词字段（如果设备支持）
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val lyricText = if (lyric.isNotEmpty()) lyric else "$title - $artist"
+                metadataBuilder.putString(MediaMetadata.METADATA_KEY_LYRIC, lyricText)
+            }
+            
+            session.setMetadata(metadataBuilder.build())
+        }
+    }
+
+    private fun buildDisplayText(
+        lyric: String,
+        translation: String,
+        romanization: String,
+        title: String,
+        artist: String
+    ): String {
+        return when {
+            lyric.isNotEmpty() -> {
+                val lines = mutableListOf(lyric)
+                if (translation.isNotEmpty()) lines.add(translation)
+                if (romanization.isNotEmpty()) lines.add(romanization)
+                lines.joinToString("\n")
+            }
+            else -> "$title - $artist"
+        }
+    }
+
+    private fun clearBluetoothLyric() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mediaSession?.setMetadata(MediaMetadata.Builder().build())
+        }
+    }
 
     @ReactMethod
     fun checkSystemAlertPermission(promise: Promise) {
