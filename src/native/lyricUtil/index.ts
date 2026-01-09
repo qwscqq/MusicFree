@@ -49,6 +49,14 @@ interface ILyricUtil extends NativeModule {
      * @returns 解密后的原始文本（可能是XML格式）
      */
     decryptQRCLyric: (encryptedHex: string) => Promise<string>;
+    
+    /** ========== 蓝牙歌词新增接口 ========== */
+    /** 启用/禁用蓝牙歌词 */
+    enableBluetoothLyric: (enabled: boolean) => Promise<void>;
+    /** 设置蓝牙歌词内容 */
+    setBluetoothLyric: (lyricData: string) => Promise<void>;
+    /** 检查蓝牙歌词支持 */
+    isBluetoothLyricSupported: () => Promise<boolean>;
 }
 
 const LyricUtil: ILyricUtil = NativeModules.LyricUtil;
@@ -69,5 +77,49 @@ const showStatusBarLyric: ILyricUtil["showStatusBarLyric"] = async (
 };
 
 LyricUtil.showStatusBarLyric = showStatusBarLyric;
+
+/** ========== 蓝牙歌词封装方法 ========== */
+
+/**
+ * 启用蓝牙歌词功能
+ */
+export const enableBluetoothLyric = async (enabled: boolean): Promise<void> => {
+    try {
+        await LyricUtil.enableBluetoothLyric(enabled);
+    } catch (e) {
+        errorLog("蓝牙歌词设置失败", e);
+        throw new Error(`蓝牙歌词设置失败: ${e.message}`);
+    }
+};
+
+/**
+ * 设置蓝牙歌词内容
+ */
+export const setBluetoothLyric = async (lyricData: {
+    title: string;
+    artist: string;
+    lyric: string;
+    translation?: string;
+    romanization?: string;
+}): Promise<void> => {
+    try {
+        await LyricUtil.setBluetoothLyric(JSON.stringify(lyricData));
+    } catch (e) {
+        errorLog("蓝牙歌词更新失败", e);
+        // 不抛出错误，避免影响正常播放
+    }
+};
+
+/**
+ * 检查设备是否支持蓝牙歌词
+ */
+export const isBluetoothLyricSupported = async (): Promise<boolean> => {
+    try {
+        return await LyricUtil.isBluetoothLyricSupported();
+    } catch (e) {
+        errorLog("蓝牙歌词支持检查失败", e);
+        return false;
+    }
+};
 
 export default LyricUtil;
