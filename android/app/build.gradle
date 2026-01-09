@@ -231,5 +231,9 @@ dependencies {
     // Streaming mflac proxy
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    
+    // Media Session support for Bluetooth lyric
+    implementation 'androidx.media:media:1.6.0'
+    // Bluetooth support
+    implementation 'androidx.core:core-ktx:1.10.0'
 }
-
