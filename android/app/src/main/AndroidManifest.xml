@@ -14,19 +14,24 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- 蓝牙歌词功能所需权限 -->
+    <!-- 蓝牙歌词功能所需权限（简化版） -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
     
-    <!-- Android 12+ 蓝牙权限 (API Level 31+) -->
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:targetApi="31" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" tools:targetApi="31" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:targetApi="31" />
+    <!-- 条件性添加 Android 12+ 权限（如果targetSdkVersion >= 31） -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
+        tools:targetApi="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" 
+        tools:targetApi="31" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" 
+        tools:targetApi="31" />
     
-    <!-- 位置权限（蓝牙设备发现需要） -->
+    <!-- 位置权限（可选，如果不需要蓝牙设备发现可以先注释掉） -->
+    <!--
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    -->
 
     <!-- 声明蓝牙功能（非强制要求） -->
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
@@ -50,7 +55,8 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
@@ -65,11 +71,11 @@
             </intent-filter>
         </receiver>
 
-        <!-- 蓝牙歌词服务（暂时注释，待实现后取消注释） -->
+        <!-- 注释掉不存在的服务，等待实现后再取消注释 -->
         <!--
         <service
             android:name=".lyricUtil.BluetoothLyricService"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
@@ -78,7 +84,7 @@
 
         <service
             android:name=".media.MediaPlaybackService"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
@@ -134,8 +140,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.mp3" />
-                <data android:pathPattern=".*\.MP3" />
+                <data android:pathPattern=".*\\.mp3" />
+                <data android:pathPattern=".*\\.MP3" />
             </intent-filter>
             
             <intent-filter>
@@ -144,8 +150,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.flac" />
-                <data android:pathPattern=".*\.FLAC" />
+                <data android:pathPattern=".*\\.flac" />
+                <data android:pathPattern=".*\\.FLAC" />
             </intent-filter>
             
             <intent-filter>
@@ -154,8 +160,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.m4a" />
-                <data android:pathPattern=".*\.M4A" />
+                <data android:pathPattern=".*\\.m4a" />
+                <data android:pathPattern=".*\\.M4A" />
             </intent-filter>
             
             <intent-filter>
@@ -164,8 +170,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.wav" />
-                <data android:pathPattern=".*\.WAV" />
+                <data android:pathPattern=".*\\.wav" />
+                <data android:pathPattern=".*\\.WAV" />
             </intent-filter>
             
             <intent-filter>
@@ -174,8 +180,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.mp3" />
-                <data android:pathPattern=".*\.MP3" />
+                <data android:pathPattern=".*\\.mp3" />
+                <data android:pathPattern=".*\\.MP3" />
             </intent-filter>
             
             <intent-filter>
@@ -184,8 +190,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.flac" />
-                <data android:pathPattern=".*\.FLAC" />
+                <data android:pathPattern=".*\\.flac" />
+                <data android:pathPattern=".*\\.FLAC" />
             </intent-filter>
             
             <intent-filter>
@@ -194,8 +200,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.m4a" />
-                <data android:pathPattern=".*\.M4A" />
+                <data android:pathPattern=".*\\.m4a" />
+                <data android:pathPattern=".*\\.M4A" />
             </intent-filter>
             
             <intent-filter>
@@ -204,8 +210,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.wav" />
-                <data android:pathPattern=".*\.WAV" />
+                <data android:pathPattern=".*\\.wav" />
+                <data android:pathPattern=".*\\.WAV" />
             </intent-filter>
             
             <!-- JavaScript文件处理 -->
@@ -231,8 +237,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.js" />
-                <data android:pathPattern=".*\.JS" />
+                <data android:pathPattern=".*\\.js" />
+                <data android:pathPattern=".*\\.JS" />
             </intent-filter>
             
             <intent-filter>
@@ -241,8 +247,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\.js" />
-                <data android:pathPattern=".*\.JS" />
+                <data android:pathPattern=".*\\.js" />
+                <data android:pathPattern=".*\\.JS" />
             </intent-filter>
         </activity>
     </application>
